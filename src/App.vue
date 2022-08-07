@@ -24,14 +24,14 @@
         <q-select outlined v-model="d.fan" :options="acFan" label="風量" class="col" map-options />
       </q-card-section>
 
-      <q-card-section v-if="d.type == 'Light'" class="row">
-        <q-btn icon="light_mode" class="col" @click="brightenLight(d.id)">明るく</q-btn>
-        <q-btn icon="dark_mode" class="col" @click="dimLight(d.id)">暗く</q-btn>
+      <q-card-section v-if="d.type == 'Light'" class="row q-gutter-lg">
+        <q-btn outline icon="light_mode" class="col" @click="brightenLight(d.id)">明るく</q-btn>
+        <q-btn outline icon="dark_mode" class="col" @click="dimLight(d.id)">暗く</q-btn>
       </q-card-section>
 
-      <q-card-actions align="center">
-        <q-btn flat icon="power_settings_new" @click="turnOn(d.id)">On</q-btn>
-        <q-btn flat icon="remove_circle" @click="turnOff(d.id)">Off</q-btn>
+      <q-card-actions align="center" class="row q-gutter-lg">
+        <q-btn flat icon="power_settings_new" @click="turnOn(d.id)" class="col">On</q-btn>
+        <q-btn flat icon="remove_circle" @click="turnOff(d.id)" class="col">Off</q-btn>
       </q-card-actions>
     </q-card>
 
@@ -44,13 +44,17 @@
 
       <q-separator />
 
-      <q-card-section>
-        <q-chip :color="tempColor(m.temperature)" text-color="white">
+      <q-card-section class="row q-gutter-md">
+        <q-chip :color="tempColor(m.temperature)" text-color="white" class="col">
           {{ m.temperature }}℃
         </q-chip>
 
-        <q-chip color="blue" text-color="white">
+        <q-chip color="blue" text-color="white" class="col">
           {{ m.humidity }}%
+        </q-chip>
+
+        <q-chip :color="thiColor(m.thi)" text-color="white" class="col">
+          {{ m.thi }}
         </q-chip>
       </q-card-section>
     </q-card>
@@ -103,6 +107,17 @@ export default {
         return "green"
     }
 
+    // 不快指数
+    const thi = (temp, humi) => {
+      return Math.round(0.81 * temp + 0.01 * humi * (0.99 * temp - 14.3) + 46.3)
+    }
+
+    const thiColor = (thi) => {
+      if (80 <= thi)
+        return "black"
+      return "green"
+    }
+
     // メーターの値取得
     const getMeterStatus = (deviceId, deviceName) => {
       axios.get(
@@ -119,7 +134,8 @@ export default {
           id: deviceId,
           name: deviceName,
           temperature: res.data.body.temperature,
-          humidity: res.data.body.humidity
+          humidity: res.data.body.humidity,
+          thi: thi(res.data.body.temperature, res.data.body.humidity)
         })
       }).catch(error => {
         console.log(error)
@@ -274,7 +290,7 @@ export default {
       getDevices,
       meters,
       irDevices,
-      tempColor,
+      tempColor, thiColor,
       turnOn, turnOff,
       acModes, acTemp, acFan,
       store, reset,
